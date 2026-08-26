@@ -1,0 +1,15 @@
+# package builds
+node_modules/
+coverage/
+build/
+
+# env
+.DS_Store
+node_modules/
+*.pem
+.env*
+
+#ts + vercel
+.vercel
+*.tsbuildinfo
+next-env.d.ts
