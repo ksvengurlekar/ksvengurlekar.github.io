@@ -1,10 +1,10 @@
-name: Build and Deploy to GH pages
+name: Deploy portfolio to GitHub Pages
 
 on:
   push:
     branches:
       - main
-    workflow_dispatch:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -12,28 +12,6 @@ permissions:
   id-token: write
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: out
-
   deploy:
     runs-on: ubuntu-latest
     environment:
@@ -50,7 +28,7 @@ jobs:
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: .
+          path: frontend
 
       - name: Deploy
         id: deployment
