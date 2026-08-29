@@ -6,167 +6,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Kiran's short luh port.">
   <title>Kiran Vengurlekar | Portfolio</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: Georgia, 'Times New Roman', Times, serif;
-      line-height: 1.5;
-      color: #111;
-      background: #fdfcfa;
-      min-height: 100vh;
-    }
-
-    a { color: inherit; }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 220px 1fr;
-      gap: 32px;
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 24px 20px 40px;
-    }
-
-    .sidebar-left {
-      position: sticky;
-      top: 24px;
-      align-self: start;
-      height: calc(100vh - 48px);
-      overflow: auto;
-      padding: 16px 14px;
-      border-right: 1px solid #e6e6e6;
-    }
-
-    .sidebar-title {
-      font-weight: 700;
-      font-size: 1.05rem;
-      letter-spacing: 0.02em;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid #e6e6e6;
-    }
-
-    .sidebar-subtitle {
-      font-family: system-ui, sans-serif;
-      font-size: 0.75rem;
-      color: #666;
-      margin: 16px 0 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .sidebar-nav { list-style: none; }
-    .sidebar-nav li { margin: 4px 0; }
-
-    .sidebar-nav a {
-      display: block;
-      padding: 4px 8px;
-      border-radius: 4px;
-      color: #444;
-      font-family: system-ui, sans-serif;
-      font-size: 0.9rem;
-      text-decoration: none;
-    }
-
-    .sidebar-nav a:hover,
-    .sidebar-nav a.active { color: #111; background: #f5f5f5; }
-
-    .rule { height: 1px; margin: 16px 0; background: #e6e6e6; }
-    .main { min-width: 0; max-width: 720px; }
-
-    .page-section { display: none; opacity: 0; transform: translateY(8px); }
-    .page-section.active { display: block; animation: fadeInUp 0.25s ease forwards; }
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .hero { padding: 16px 0 0; }
-    .hero h1 { margin-bottom: 6px; font-size: 1.8rem; letter-spacing: -0.02em; }
-
-    .dek, .about-text, .project-card p, .section-note, .footer p {
-      font-family: system-ui, sans-serif;
-    }
-
-    .dek { margin-bottom: 12px; color: #444; font-size: 0.92rem; }
-
-    .social-links, .project-links {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-
-    .social-links a, .project-links a {
-      color: #555;
-      font-family: system-ui, sans-serif;
-      font-size: 0.85rem;
-      text-decoration: underline;
-    }
-
-    .section { padding: 20px 0; }
-    .section h2 { margin-bottom: 12px; font-size: 1.3rem; }
-    .section h3 { margin: 20px 0 8px; color: #333; font-size: 1.1rem; }
-
-    .about-text { color: #333; font-size: 0.92rem; line-height: 1.7; }
-    .about-text p { margin-bottom: 8px; }
-
-    .projects-grid { display: grid; gap: 10px; margin-top: 10px; }
-    .project-card { padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
-    .project-card h3 { margin: 0 0 4px; color: #111; font-size: 0.95rem; }
-    .project-card p { margin-bottom: 6px; color: #555; font-size: 0.88rem; }
-
-    .section-note { margin: -4px 0 12px; color: #666; font-size: 0.88rem; }
-    .footer { margin-top: 24px; padding: 24px 0 0; border-top: 1px solid #e6e6e6; }
-    .footer p { color: #888; font-size: 0.84rem; }
-
-    @media (max-width: 768px) {
-      .layout { grid-template-columns: 1fr; gap: 0; padding: 16px 16px 32px; }
-      .sidebar-left {
-        position: static;
-        height: auto;
-        border-right: none;
-        border-bottom: 1px solid #e6e6e6;
-        margin-bottom: 16px;
-        padding: 12px 0 16px;
-      }
-      .main { max-width: 100%; }
-    }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="script.js" defer></script>
 </head>
 
 <body>
   <div class="layout">
     <aside class="sidebar-left" aria-label="Site navigation">
-      <!-- Replace these placeholders with your own name and links. -->
-      <div class="sidebar-title">Your Name</div>
-      <div class="sidebar-subtitle">Navigate</div>
+      <div class="sidebar-title">Portfolio</div>
+      <div class="sidebar-subtitle">Details</div>
       <ul class="sidebar-nav">
         <li><a href="#home" data-page="home" class="active">Home</a></li>
         <li><a href="#projects" data-page="projects">Projects</a></li>
         <li><a href="#experience" data-page="experience">Experience</a></li>
       </ul>
       <div class="rule"></div>
-      <div class="sidebar-subtitle">Links</div>
-      <ul class="sidebar-nav">
-        <li><a href="https://github.com/ksvengurlekar" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-        <li><a href="https://www.linkedin.com/in/ksvengurlekar/" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
-        <li><a href="mailto:ksvengurlekar@gmail.com">Email</a></li>
-      </ul>
+      <div class="social-links">
+        <a href="https://github.com/ksvengurlekar" target="_blank" rel="noopener noreferrer" aria-label="GitHub" title="GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+        <a href="https://www.linkedin.com/in/ksvengurlekar/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" title="LinkedIn"><i class="fab fa-linkedin-in" aria-hidden="true"></i></a>
+        <a href="mailto:ksvengurlekar@gmail.com" aria-label="Email" title="Email"><i class="fas fa-envelope" aria-hidden="true"></i></a>
+      </div>
     </aside>
 
     <main class="main">
       <div id="home" class="page-section active">
         <section class="hero">
-          <h1>Your Name</h1>
-          <div class="dek">Your role or focus · Your location</div>
-          <div class="social-links">
-            <a href="https://github.com/YOUR_USERNAME" target="_blank" rel="noopener noreferrer">GitHub</a>
-            <a href="https://www.linkedin.com/in/YOUR_USERNAME/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-            <a href="mailto:YOUR_EMAIL@example.com">Email</a>
-          </div>
+          <h1>Kiran Vengurlekar</h1>
+          <div class="dek">Software Engineer at PayPal · San Francisco Bay Area</div>
         </section>
 
         <section class="section">
@@ -176,7 +46,7 @@
           </div>
         </section>
 
-        <footer class="footer"><p>&copy; 2026 Your Name</p></footer>
+        <footer class="footer"><p>&copy; 2026 Kiran Vengurlekar</p></footer>
       </div>
 
       <div id="projects" class="page-section">
@@ -187,7 +57,6 @@
 
         <section class="section">
           <div class="projects-grid">
-            <!-- Copy this project-card when you add another project. -->
             <div class="project-card">
               <h3>Project name</h3>
               <p>What does it do? What did you learn? What technologies did you use?</p>
@@ -209,41 +78,11 @@
         <section class="section">
           <h2>Role or degree</h2>
           <p class="section-note">Organization · Dates</p>
-          <p class="about-text">Describe your contribution, responsibilities, and one concrete result or thing you learned.</p>
+          <p class="about-text"> WIP idk some fluff about .</p>
         </section>
       </div>
     </main>
   </div>
-
-  <script>
-    const navLinks = document.querySelectorAll('.sidebar-nav a[data-page]');
-    const sections = document.querySelectorAll('.page-section');
-
-    function showPage(pageId) {
-      sections.forEach((section) => {
-        section.classList.toggle('active', section.id === pageId);
-      });
-
-      navLinks.forEach((link) => {
-        link.classList.toggle('active', link.dataset.page === pageId);
-      });
-    }
-
-    navLinks.forEach((link) => {
-      link.addEventListener('click', (event) => {
-        event.preventDefault();
-        const page = link.dataset.page;
-        showPage(page);
-        history.pushState({ page }, '', `#${page}`);
-      });
-    });
-
-    window.addEventListener('popstate', () => {
-      showPage(window.location.hash.slice(1) || 'home');
-    });
-
-    showPage(window.location.hash.slice(1) || 'home');
-  </script>
 </body>
 
 </html>

@@ -1,0 +1,164 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: Open Sans, 'Times New Roman', Times, serif;
+    line-height: 1.5;
+    color: #17232b;
+    background: #fbfaf7;
+    min-height: 100vh;
+}
+
+a { color: inherit; }
+
+.layout {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    gap: 48px;
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 40px 24px 56px;
+}
+
+.sidebar-left {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    height: calc(100vh - 48px);
+    overflow: auto;
+    padding: 8px 18px 8px 0;
+    border-right: 1px solid #e5dfe8;
+}
+
+.sidebar-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.02em;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #b9a8c4;
+}
+
+.sidebar-subtitle {
+    font-family: system-ui, sans-serif;
+    font-size: 0.75rem;
+    color: #7b7180;
+    margin: 16px 0 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.sidebar-nav { list-style: none; }
+.sidebar-nav li { margin: 4px 0; }
+
+.sidebar-nav a {
+    display: block;
+    padding: 7px 9px;
+    border-radius: 4px;
+    color: #68606d;
+    font-family: system-ui, sans-serif;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+    color: #493b52;
+    background: #f2edf4;
+}
+
+.sidebar-nav a.active::before {
+    content: "→";
+    display: inline-block;
+    width: 18px;
+    color: #75658A;
+}
+
+.rule { height: 1px; margin: 20px 0; background: #e5dfe8; }
+.main { min-width: 0; max-width: 720px; }
+
+.page-section { display: none; opacity: 0; transform: translateY(8px); }
+.page-section.active { display: block; animation: fadeInUp 0.25s ease forwards; }
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.hero { padding: 8px 0 0; }
+.hero h1 { margin-bottom: 8px; font-size: 2rem; letter-spacing: -0.035em; }
+
+.dek, .about-text, .project-card p, .section-note, .footer p {
+    font-family: system-ui, sans-serif;
+}
+
+.dek { margin-bottom: 14px; color: #68606d; font-size: 0.92rem; }
+
+.social-links, .project-links {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.social-links a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    color: #70537f;
+    font-family: system-ui, sans-serif;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: color 0.15s ease, background 0.15s ease;
+}
+
+.project-links a {
+    color: #70537f;
+    font-family: system-ui, sans-serif;
+    font-size: 0.85rem;
+    text-decoration: underline;
+    text-decoration-color: #c9b8d2;
+    text-underline-offset: 3px;
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.social-links a:hover {
+    color: #493b52;
+    background: #f2edf4;
+    border-radius: 50%;
+}
+
+.project-links a:hover {
+    color: #493b52;
+    text-decoration-color: #70537f;
+}
+
+.section { padding: 20px 0; }
+.section h2 { margin-bottom: 12px; font-size: 1.3rem; }
+.section h3 { margin: 20px 0 8px; color: #333; font-size: 1.1rem; }
+
+.about-text { color: #433d48; font-size: 0.92rem; line-height: 1.75; }
+.about-text p { margin-bottom: 8px; }
+
+.projects-grid { display: grid; gap: 10px; margin-top: 10px; }
+.project-card { padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+.project-card h3 { margin: 0 0 4px; color: #111; font-size: 0.95rem; }
+.project-card p { margin-bottom: 8px; color: #68606d; font-size: 0.88rem; }
+
+.section-note { margin: -4px 0 12px; color: #666; font-size: 0.88rem; }
+.footer { margin-top: 28px; padding: 24px 0 0; border-top: 1px solid #e5dfe8; }
+.footer p { color: #888; font-size: 0.84rem; }
+
+@media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; gap: 0; padding: 16px 16px 32px; }
+    .sidebar-left {
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid #e5dfe8;
+    margin-bottom: 16px;
+    padding: 12px 0 16px;
+    }
+    .main { max-width: 100%; }
+}
