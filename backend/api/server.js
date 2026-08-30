@@ -1,9 +1,45 @@
 import express from "express";
 import cookieParser from "cookie-parser";
-import { cookie_ops } from "./cookies.js";
+import crypto from "node:crypto";
+import { saveEvent } from "./database.js";
+import { cookie_ops, is_max_collection } from "./cookies.js";
 
-function saveEvent() {
+function getUserAgentFamily(userAgent = "") {
+    if (/edg/i.test(userAgent)) return "Edge";
+    if (/chrome|crios/i.test(userAgent)) return "Chrome";
+    if (/firefox|fxios/i.test(userAgent)) return "Firefox";
+    if (/safari/i.test(userAgent)) return "Safari";
+    return "Other";
+}
 
+function getDeviceCategory(userAgent = "") {
+    if (/tablet|ipad/i.test(userAgent)) return "tablet";
+    if (/mobile|iphone|android/i.test(userAgent)) return "mobile";
+    return "desktop";
+}
+
+function getApproximateRegion(request) {
+    const country = request.get("x-vercel-ip-country");
+    if (country) return country;
+
+    const language = request.get("accept-language");
+    return language?.match(/^[a-z]{2}(?:-([A-Z]{2}))?/i)?.[1] ?? null;
+}
+
+function getPagePath(pageUrl) {
+    try {
+        return new URL(pageUrl).pathname;
+    } catch {
+        return null;
+    }
+}
+
+function getReferrerOrigin(referrerUrl) {
+    try {
+        return referrerUrl ? new URL(referrerUrl).origin : null;
+    } catch {
+        return null;
+    }
 }
 
 const app = express();
@@ -21,13 +57,29 @@ app.post("/api/events", (req, res) => {
     }
 
 
-    const { event, page } = req.body;
+    const { event, pageUrl } = req.body;
+    const userAgent = req.get("user-agent") ?? "";
+    const referrerUrl = req.get("referer") ?? null;
 
-    saveEvent({
+    const eventData = {
         vid,
         event,
-        page
-    });
+        timestamp: new Date().toISOString(),
+        pagePath: getPagePath(pageUrl),
+        referrerOrigin: getReferrerOrigin(referrerUrl),
+        userAgentFamily: getUserAgentFamily(userAgent),
+        approximateRegion: getApproximateRegion(req),
+        eventType: event,
+        deviceCategory: getDeviceCategory(userAgent)
+    };
 
-  res.json({ success: true });
+    if (is_max_collection) {
+        eventData.ipAddress = req.ip;
+        eventData.referrerUrl = referrerUrl;
+        eventData.queryStringsAndFragments = pageUrl ?? null;
+        eventData.userAgent = userAgent;
+    }
+
+    saveEvent(eventData);
+    res.json({ success: true });
 });

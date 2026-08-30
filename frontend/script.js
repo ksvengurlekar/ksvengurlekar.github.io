@@ -14,7 +14,7 @@ function showPage(pageId) {
 function trackEvent(eventName) {
     const eventData = {
         event: eventName,
-        page: window.location.pathname
+        pageUrl: window.location.href
     }
 
     fetch("/api/events", {
