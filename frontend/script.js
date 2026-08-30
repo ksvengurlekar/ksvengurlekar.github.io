@@ -11,6 +11,21 @@ function showPage(pageId) {
     });
 }
 
+function trackEvent(eventName) {
+    const eventData = {
+        event: eventName,
+        page: window.location.pathname
+    }
+
+    fetch("/api/events", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(eventData)
+    });
+}
+
 navLinks.forEach((link) => {
     link.addEventListener('click', (event) => {
     event.preventDefault();
@@ -26,26 +41,10 @@ window.addEventListener('popstate', () => {
 
 showPage(window.location.hash.slice(1) || 'home');
 
-const visitorId = getOrCreateVisitorId();
+// site analytics
 
 trackEvent("page-view");
 
-window.addEventListener("DOMContentLoaded", () => {
-  fetch("/api/events", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      visitorId: getVisitorId(),
-      event: "page-view",
-      page: window.location.pathname
-    })
-  });
-});
-
-document
-  .querySelector("#resume-link")
-  .addEventListener("click", () => {
+resumeLink.addEventListener("click", () => {
     trackEvent("resume-click");
-  });
+})
