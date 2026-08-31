@@ -1,6 +1,7 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import crypto from "node:crypto";
+import cors from "cors";
 import { saveEvent } from "./database.js";
 import { cookie_ops, is_max_collection } from "./cookies.js";
 
@@ -44,6 +45,14 @@ function getReferrerOrigin(referrerUrl) {
 
 const app = express();
 
+app.use(cors({
+  origin: [
+    "http://localhost:5500",
+    "http://127.0.0.1:5500"
+  ],
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -82,4 +91,10 @@ app.post("/api/events", (req, res) => {
 
     saveEvent(eventData);
     res.json({ success: true });
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`Backend running at http://localhost:${PORT}`);
 });

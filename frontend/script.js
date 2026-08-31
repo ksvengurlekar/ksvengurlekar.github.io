@@ -17,13 +17,21 @@ function trackEvent(eventName) {
         pageUrl: window.location.href
     }
 
-    fetch("/api/events", {
+    fetch(`${window.APP_CONFIG.apiBaseUrl}/api/events`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
+        credentials: "include",
         body: JSON.stringify(eventData)
-    });
+    })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("Tracked:", data);
+    })
+    .catch((error) => {
+      console.error("Tracking failed:", error);
+    });;
 }
 
 navLinks.forEach((link) => {

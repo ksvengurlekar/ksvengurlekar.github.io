@@ -1,5 +1,5 @@
 export function saveEvent(event) {
-  // INSERT event into SQLite
+    console.log("Received event:", event);
 }
 
 export function getRecentEvents() {
