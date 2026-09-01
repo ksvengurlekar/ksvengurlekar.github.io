@@ -1,4 +1,5 @@
 const NODE_ENV = process.env.NODE_ENV ?? "development";
+// Minimal is the safe fallback. Environments can explicitly opt into maximal.
 const COOKIE_MODE = process.env.COOKIE_MODE === "maximal"
     ? "maximal"
     : "minimal";
@@ -18,7 +19,7 @@ export const min_cookie = {
     pagePath: true,
     referrerOrigin: true,
     userAgentFamily: true,
-    approximateRegion: true,
+    languageRegion: true,
     eventType: true,
     deviceCategory: true
 };
@@ -27,11 +28,9 @@ export const max_cookie = {
     ...min_cookie,
     fullIpAddress: true,
     fullReferrerUrl: true,
-    queryStringsAndFragments: true,
-    formContentsAndContactData: true,
-    preciseLocation: true,
-    fingerprintingData: true,
-    sensitivePageData: true
+    fullPageUrl: true,
+    fullUserAgent: true,
+    sharedLocation: true
 };
 
 export const collection_mode = COOKIE_MODE;

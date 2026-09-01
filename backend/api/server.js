@@ -5,6 +5,22 @@ import cors from "cors";
 import { saveEvent } from "./database.js";
 import { cookie_ops, is_max_collection } from "./cookies.js";
 
+const allowedOrigins = [
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "https://ksvengurlekar.github.io"
+];
+
+const allowedEvents = new Set([
+    "page-view",
+    "resume-click",
+    "project-click",
+    "location-shared",
+    "page-navigation",
+    "project-link-click",
+    "social-link-click"
+]);
+
 function getUserAgentFamily(userAgent = "") {
     if (/edg/i.test(userAgent)) return "Edge";
     if (/chrome|crios/i.test(userAgent)) return "Chrome";
@@ -19,10 +35,8 @@ function getDeviceCategory(userAgent = "") {
     return "desktop";
 }
 
-function getApproximateRegion(request) {
-    const country = request.get("x-vercel-ip-country");
-    if (country) return country;
-
+function getLanguageRegion(request) {
+    // This reflects the browser's language preference, not verified geography.
     const language = request.get("accept-language");
     return language?.match(/^[a-z]{2}(?:-([A-Z]{2}))?/i)?.[1] ?? null;
 }
@@ -43,18 +57,32 @@ function getReferrerOrigin(referrerUrl) {
     }
 }
 
+function normalizeLocation(location) {
+    const source = location && typeof location === "object" ? location : {};
+    const { latitude, longitude, accuracy } = source;
+
+    return {
+        latitude: Number.isFinite(latitude) && latitude >= -90 && latitude <= 90
+            ? latitude
+            : null,
+        longitude: Number.isFinite(longitude) && longitude >= -180 && longitude <= 180
+            ? longitude
+            : null,
+        accuracy: Number.isFinite(accuracy) && accuracy >= 0
+            ? accuracy
+            : null
+    };
+}
+
 const app = express();
 
 app.use(cors({
-  origin: [
-    "http://localhost:5500",
-    "http://127.0.0.1:5500"
-  ],
+  origin: allowedOrigins,
   credentials: true
 }));
 
-app.use(express.json());
 app.use(cookieParser());
+app.use(express.json({ limit: "10kb" }));
 
 app.post("/api/events", (req, res) => {
     let vid = req.cookies.visitor_id;
@@ -66,7 +94,20 @@ app.post("/api/events", (req, res) => {
     }
 
 
-    const { event, pageUrl } = req.body;
+    const { event, pageUrl, location } = req.body;
+
+    if (typeof event !== "string" || event.length === 0 || !allowedEvents.has(event)) {
+        return res.status(400).json({
+            error: "event failure"
+        });
+    }
+
+    if (pageUrl !== undefined && typeof pageUrl !== "string") {
+        return res.status(400).json({
+            error: "pageUrl failure"
+        });
+    }
+
     const userAgent = req.get("user-agent") ?? "";
     const referrerUrl = req.get("referer") ?? null;
 
@@ -77,15 +118,18 @@ app.post("/api/events", (req, res) => {
         pagePath: getPagePath(pageUrl),
         referrerOrigin: getReferrerOrigin(referrerUrl),
         userAgentFamily: getUserAgentFamily(userAgent),
-        approximateRegion: getApproximateRegion(req),
-        eventType: event,
+        languageRegion: getLanguageRegion(req),
         deviceCategory: getDeviceCategory(userAgent)
     };
+
+    if (event === "location-shared") {
+        eventData.location = normalizeLocation(location);
+    }
 
     if (is_max_collection) {
         eventData.ipAddress = req.ip;
         eventData.referrerUrl = referrerUrl;
-        eventData.queryStringsAndFragments = pageUrl ?? null;
+        eventData.fullPageUrl = pageUrl ?? null;
         eventData.userAgent = userAgent;
     }
 
