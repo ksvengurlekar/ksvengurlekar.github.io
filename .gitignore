@@ -8,6 +8,7 @@ build/
 node_modules/
 *.pem
 .env*
+!.env.example
 
 #ts + vercel
 .vercel
