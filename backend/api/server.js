@@ -36,7 +36,6 @@ function getDeviceCategory(userAgent = "") {
 }
 
 function getLanguageRegion(request) {
-    // This reflects the browser's language preference, not verified geography.
     const language = request.get("accept-language");
     return language?.match(/^[a-z]{2}(?:-([A-Z]{2}))?/i)?.[1] ?? null;
 }
@@ -62,15 +61,9 @@ function normalizeLocation(location) {
     const { latitude, longitude, accuracy } = source;
 
     return {
-        latitude: Number.isFinite(latitude) && latitude >= -90 && latitude <= 90
-            ? latitude
-            : null,
-        longitude: Number.isFinite(longitude) && longitude >= -180 && longitude <= 180
-            ? longitude
-            : null,
-        accuracy: Number.isFinite(accuracy) && accuracy >= 0
-            ? accuracy
-            : null
+        latitude: Number.isFinite(latitude) && latitude >= -90 && latitude <= 90 ? latitude : null,
+        longitude: Number.isFinite(longitude) && longitude >= -180 && longitude <= 180 ? longitude : null,
+        accuracy: Number.isFinite(accuracy) && accuracy >= 0 ? accuracy : null
     };
 }
 
