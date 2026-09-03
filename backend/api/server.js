@@ -5,6 +5,9 @@ import cors from "cors";
 import { saveEvent } from "./database.js";
 import { cookie_ops, is_max_collection } from "./cookies.js";
 
+const PORT = process.env.PORT || 3000;
+const DISC = process.env.DISCORD_WEBHOOK_URL
+
 const allowedOrigins = [
     "http://localhost:5500",
     "http://127.0.0.1:5500",
@@ -67,6 +70,34 @@ function normalizeLocation(location) {
     };
 }
 
+export async function sendDiscord(message) {
+    if (!DISC) {
+        throw new Error("Missing discord url")
+    }
+
+    const response = await fetch (`${DISC}?wait=true`, {
+        method: "POST",
+        header: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            content: message.trim().slice(0, 2000),
+            allowed_mentions: {
+                parse: []
+            }
+        })
+    })
+
+    if (!response.ok) {
+        console.error(
+            "Discord webhook failed:",
+            response.status,
+            await response.text()
+        );
+        throw new Error("Discord notification failed");
+    }
+
+    return response;    
+}
+
 const app = express();
 
 app.use(cors({
@@ -76,6 +107,20 @@ app.use(cors({
 
 app.use(cookieParser());
 app.use(express.json({ limit: "10kb" }));
+
+app.post("api/test-discord", async (req, res) => {
+    const msg = req.body;
+
+    try {
+        await sendDiscord(msg)
+        return res.json({ success: true });
+    } catch (error) {
+        console.error(error);
+        return res.status(502).json({
+            error: "Discord notification failed"
+        });
+    }
+});
 
 app.post("/api/events", (req, res) => {
     let vid = req.cookies.visitor_id;
@@ -129,8 +174,6 @@ app.post("/api/events", (req, res) => {
     saveEvent(eventData);
     res.json({ success: true });
 });
-
-const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
     console.log(`Backend running at http://localhost:${PORT}`);
