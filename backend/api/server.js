@@ -75,9 +75,13 @@ export async function sendDiscord(message) {
         throw new Error("Missing discord url")
     }
 
-    const response = await fetch (`${DISC}?wait=true`, {
+    if (typeof message !== "string" || message.trim() === "") {
+        throw new TypeError("Discord message must be a non-empty string");
+    }
+
+    const response = await fetch(`${DISC}?wait=true`, {
         method: "POST",
-        header: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             content: message.trim().slice(0, 2000),
             allowed_mentions: {
@@ -108,11 +112,11 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json({ limit: "10kb" }));
 
-app.post("api/test-discord", async (req, res) => {
-    const msg = req.body;
+app.post("/api/test-discord", async (req, res) => {
+    const { message } = req.body;
 
     try {
-        await sendDiscord(msg)
+        await sendDiscord(message);
         return res.json({ success: true });
     } catch (error) {
         console.error(error);
