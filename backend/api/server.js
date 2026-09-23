@@ -70,6 +70,16 @@ function normalizeLocation(location) {
     };
 }
 
+function formatDiscord(eventData) {
+    return [
+        "New Portfolio view:",
+        "",
+        "```json",
+        JSON.stringify(eventData, null, 2),
+        "```"
+    ].join("\n");
+}
+
 export async function sendDiscord(message) {
     if (!DISC) {
         throw new Error("Missing discord url")
@@ -176,6 +186,7 @@ app.post("/api/events", (req, res) => {
     }
 
     saveEvent(eventData);
+    formatDiscord(eventData);
     res.json({ success: true });
 });
 
