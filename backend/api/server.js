@@ -72,7 +72,7 @@ function normalizeLocation(location) {
 
 function formatDiscord(eventData) {
     return [
-        "New Portfolio view:",
+        `New Portfolio event: ${eventData.event}`,
         "",
         "```json",
         JSON.stringify(eventData, null, 2),
@@ -186,7 +186,7 @@ app.post("/api/events", (req, res) => {
     }
 
     saveEvent(eventData);
-    formatDiscord(eventData);
+    sendDiscord(formatDiscord(eventData));
     res.json({ success: true });
 });
 

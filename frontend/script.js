@@ -13,6 +13,7 @@ function showPage(pageId) {
 
 function trackEvent(eventName, extraData = {}) {
     const eventData = {
+        sessionId,
         event: eventName,
         pageUrl: window.location.href,
         ...extraData
@@ -50,8 +51,16 @@ function getCurrentPosition() {
     });
 }
 
-// This is enabled automatically for the local demo only. In production, call
-// it from an explicit user action after adding your permission/consent UI.
+function getSessionId() {
+    let sessionId = sessionStorage.getItem("session_id");
+    if (!sessionId) {
+        sessionId = crypto.randomUUID();
+        sessionStorage.set("sessionId", sessionId);
+    }
+
+    return sessionId;
+}
+
 async function trackCurrentLocation() {
     try {
         const position = await getCurrentPosition();
@@ -66,6 +75,7 @@ async function trackCurrentLocation() {
 }
 
 const isLocalDemo = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+const sessionId = getSessionId();
 
 if (isLocalDemo) {
     trackCurrentLocation();
