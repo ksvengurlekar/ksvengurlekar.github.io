@@ -137,6 +137,7 @@ app.post("/api/test-discord", async (req, res) => {
 });
 
 app.post("/api/events", (req, res) => {
+    let sid = req.cookies
     let vid = req.cookies.visitor_id;
 
     if (!vid) {

@@ -11,7 +11,7 @@ function showPage(pageId) {
     });
 }
 
-function trackEvent(eventName, extraData = {}) {
+async function trackEvent(eventName, extraData = {}) {
     const eventData = {
         sessionId,
         event: eventName,
@@ -19,21 +19,20 @@ function trackEvent(eventName, extraData = {}) {
         ...extraData
     };
 
-    return fetch(`${window.APP_CONFIG.apiBaseUrl}/api/events`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify(eventData)
-    })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log("Tracked:", data);
-    })
-    .catch((error) => {
-      console.error("Tracking failed:", error);
-    });
+    try {
+        const response = await fetch(`${window.APP_CONFIG.apiBaseUrl}/api/events`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify(eventData)
+        });
+        const data = await response.json();
+        console.log("Tracked:", data);
+    } catch (error) {
+        console.error("Tracking failed:", error);
+    }
 }
 
 function getCurrentPosition() {
@@ -44,7 +43,7 @@ function getCurrentPosition() {
         }
 
         navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: false,
+            enableHighAccuracy: true,
             timeout: 10000,
             maximumAge: 300000
         });
