@@ -12,12 +12,13 @@ function showPage(pageId) {
 }
 
 async function trackEvent(eventName, extraData = {}) {
-    const eventData = {
-        sessionId,
-        event: eventName,
-        pageUrl: window.location.href,
+    const event = {
+        eventId: crypto.randomUUID(),
+        type: eventName,
+        pagePath: getPagePath(),
+        occurredAt: new Date().toISOString(),
         ...extraData
-    };
+    }; 
 
     try {
         const response = await fetch(`${window.APP_CONFIG.apiBaseUrl}/api/events`, {
@@ -26,9 +27,14 @@ async function trackEvent(eventName, extraData = {}) {
                 "Content-Type": "application/json"
             },
             credentials: "include",
-            body: JSON.stringify(eventData)
+            body: JSON.stringify({sessionId, event})
         });
+
         const data = await response.json();
+        if (!response.ok) {
+            throw new Error(`Tracking failed: ${response.status} ${JSON.stringify(data)}`);
+        }
+
         console.log("Tracked:", data);
     } catch (error) {
         console.error("Tracking failed:", error);
@@ -54,10 +60,22 @@ function getSessionId() {
     let sessionId = sessionStorage.getItem("session_id");
     if (!sessionId) {
         sessionId = crypto.randomUUID();
-        sessionStorage.set("sessionId", sessionId);
+        sessionStorage.setItem("session_id", sessionId);
     }
 
     return sessionId;
+}
+
+function getPagePath() {
+    const rawPath =
+        window.location.hash.slice(1) || window.location.pathname || "/";
+
+    const pathWithoutQuery = rawPath.split(/[?#]/, 1)[0];
+
+    const normalized = pathWithoutQuery.startsWith("/") ? pathWithoutQuery
+        : `/${pathWithoutQuery}`;
+
+    return normalized.replace(/\/+/g, "/").slice(0, 200);
 }
 
 async function trackCurrentLocation() {

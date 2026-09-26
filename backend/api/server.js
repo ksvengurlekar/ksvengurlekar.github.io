@@ -7,6 +7,8 @@ import { cookie_ops, is_max_collection } from "./cookies.js";
 
 const PORT = process.env.PORT || 3000;
 const DISC = process.env.DISCORD_WEBHOOK_URL
+const UUID_PATTERN =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const allowedOrigins = [
     "http://localhost:5500",
@@ -43,12 +45,17 @@ function getLanguageRegion(request) {
     return language?.match(/^[a-z]{2}(?:-([A-Z]{2}))?/i)?.[1] ?? null;
 }
 
-function getPagePath(pageUrl) {
-    try {
-        return new URL(pageUrl).pathname;
-    } catch {
+function normalizePagePath(pagePath) {
+    if (typeof pagePath !== "string") {
         return null;
     }
+
+    const pathWithoutQuery = pagePath.split(/[?#]/, 1)[0];
+    const normalized = pathWithoutQuery.startsWith("/")
+        ? pathWithoutQuery
+        : `/${pathWithoutQuery}`;
+
+    return normalized.replace(/\/+/g, "/").slice(0, 200);
 }
 
 function getReferrerOrigin(referrerUrl) {
@@ -72,7 +79,7 @@ function normalizeLocation(location) {
 
 function formatDiscord(eventData) {
     return [
-        `New Portfolio event: ${eventData.event}`,
+        `New Portfolio event: ${eventData.type}`,
         "",
         "```json",
         JSON.stringify(eventData, null, 2),
@@ -112,6 +119,10 @@ export async function sendDiscord(message) {
     return response;    
 }
 
+async function saveSession(sesh) {
+    saveEvent(sesh);
+}
+
 const app = express();
 
 app.use(cors({
@@ -136,8 +147,8 @@ app.post("/api/test-discord", async (req, res) => {
     }
 });
 
-app.post("/api/events", (req, res) => {
-    let sid = req.cookies
+app.post("/api/events", async (req, res) => {
+    const now = new Date().toISOString();
     let vid = req.cookies.visitor_id;
 
     if (!vid) {
@@ -147,17 +158,31 @@ app.post("/api/events", (req, res) => {
     }
 
 
-    const { event, pageUrl, location } = req.body;
+    const { sessionId, event } = req.body ?? {};
 
-    if (typeof event !== "string" || event.length === 0 || !allowedEvents.has(event)) {
+    if (
+        !event ||
+        typeof event !== "object" ||
+        typeof event.type !== "string" ||
+        event.type.length === 0 ||
+        !allowedEvents.has(event.type)
+    ) {
         return res.status(400).json({
             error: "event failure"
         });
     }
 
-    if (pageUrl !== undefined && typeof pageUrl !== "string") {
+    const pagePath = normalizePagePath(event.pagePath);
+
+    if (!pagePath) {
         return res.status(400).json({
-            error: "pageUrl failure"
+            error: "pagePath failure"
+        });
+    }
+
+    if (typeof sessionId !== "string" || !UUID_PATTERN.test(sessionId)) {
+        return res.status(400).json({
+            error: "invalid session"
         });
     }
 
@@ -166,27 +191,32 @@ app.post("/api/events", (req, res) => {
 
     const eventData = {
         vid,
-        event,
-        timestamp: new Date().toISOString(),
-        pagePath: getPagePath(pageUrl),
+        eventId: event.eventId ?? crypto.randomUUID(),
+        type: event.type,
+        timestamp: event.occurredAt ?? now,
+        pagePath,
         referrerOrigin: getReferrerOrigin(referrerUrl),
         userAgentFamily: getUserAgentFamily(userAgent),
         languageRegion: getLanguageRegion(req),
         deviceCategory: getDeviceCategory(userAgent)
     };
 
-    if (event === "location-shared") {
-        eventData.location = normalizeLocation(location);
+    if (event.type === "location-shared") {
+        eventData.location = normalizeLocation(event.location);
     }
 
     if (is_max_collection) {
         eventData.ipAddress = req.ip;
         eventData.referrerUrl = referrerUrl;
-        eventData.fullPageUrl = pageUrl ?? null;
         eventData.userAgent = userAgent;
     }
 
-    saveEvent(eventData);
+    await saveSession({
+        sessionId,
+        event: eventData
+    });
+
+    // saveEvent(eventData);
     sendDiscord(formatDiscord(eventData));
     res.json({ success: true });
 });

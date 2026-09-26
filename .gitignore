@@ -9,6 +9,7 @@ node_modules/
 *.pem
 .env*
 !.env.example
+backend/worker/.dev.vars
 
 #ts + vercel
 .vercel
