@@ -3,5 +3,20 @@
 
   "name": "portfolio-api",
   "main": "src/index.js",
-  "compatibility_date": "2026-09-26"
+  "compatibility_date": "2026-09-26",
+  
+  "durable_objects": {
+  "bindings": [
+      {
+        "name": "SESSION_BUCKETS",
+        "class_name": "SessionBucket"
+      }
+    ]
+  },
+  "exports": {
+    "SessionBucket": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    }
+  }
 }
