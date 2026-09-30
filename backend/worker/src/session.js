@@ -23,14 +23,11 @@ export class SessionBucket extends DurableObject {
 
         const session = await this.ctx.storage.get(SESSION) ?? {
             events: [],
-            droppedEvents: 0,
             startedAt: Date.now()
         }
 
-        if (session.events.length < MAX_EVENTS) {
-            session.events.push(event);
-        } else {
-            droppedEvents += 1;
+        if (session.events.length >= MAX_EVENTS) {
+            return Response.json({ error: "Session event limit reached" }, { status: 429 });
         }
 
         session.lastEventAt = Date.now();
@@ -48,7 +45,7 @@ export class SessionBucket extends DurableObject {
         const session = await this.ctx.storage.get(SESSION);
         if (!session) return;
 
-        console.error.log(`Session became idle with ${session.events.length}`);
-        await this.ctx.storage.delete(SESSION_KEY);
+        console.error(`Session became idle with ${session.events.length}`);
+        await this.ctx.storage.delete(SESSION);
     }
 }

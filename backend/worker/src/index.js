@@ -3,7 +3,7 @@ import {
     max_cookie, min_cookie,
     serializeVisitorCookie
 } from "./cookies.js";
-export { SessionBucket } from "./session-bucket.js";
+export { SessionBucket } from "./session.js";
 
 const UUID_PATTERN =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -186,8 +186,15 @@ async function sendDiscord(env, message) {
     }
 }
 
-async function saveSession(session) {
-    console.log("Received session event:", JSON.stringify(session));
+async function saveSession(env, { sessionId, event }) {
+    const bucket = env.SESSION_BUCKETS.getByName(sessionId);
+    console.log("Received session event:", JSON.stringify(event));
+
+    return bucket.fetch("https://session-bucket/event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(event)
+    });
 }
 
 async function handleTestDiscord(request, env) {
@@ -269,7 +276,13 @@ async function handleEvent(request, env, ctx) {
         }
     }
 
-    await saveSession({ sessionId, event: eventData });
+    const bucketResponse = await saveSession({ sessionId, event: eventData });
+
+    if (!bucketResponse.ok) {
+        return jsonResponse(request, { error: "Could not save event" }, 502)
+    }
+
+    const bucketResult = await bucketResponse.json();
 
     ctx.waitUntil(
         sendDiscord(env, formatDiscord(eventData)).catch((error) => {
@@ -282,7 +295,10 @@ async function handleEvent(request, env, ctx) {
         headers["Set-Cookie"] = serializeVisitorCookie(visitorId, env);
     }
 
-    return jsonResponse(request, { success: true }, 200, headers);
+    return jsonResponse(request, { 
+        success: true,
+        storedEvents: bucketResult.storedEvents
+    }, 200, headers);
 }
 
 export default {
