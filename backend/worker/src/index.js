@@ -312,7 +312,7 @@ export default {
 
         const url = new URL(request.url);
 
-        if (url.pathname === "/api/health" && request.method === "GET") {
+        if (url.pathname === "/api/heeth" && request.method === "GET") {
             return jsonResponse(request, {
                 ok: true,
                 service: "portfolio-api"

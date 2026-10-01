@@ -10,6 +10,7 @@ node_modules/
 .env*
 !.env.example
 backend/worker/.dev.vars
+/AGENTS.md
 
 # Cloudflare Wrangler local state and logs
 .wrangler/
