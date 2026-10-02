@@ -1,4 +1,5 @@
 import { DurableObject } from "cloudflare:workers";
+import { formatSessionSummary, sendDiscord } from "./notification.js";
 
 const MAX_EVENTS = 100;
 const IDLE_TIMEOUT_MS = 20_000;
@@ -30,6 +31,8 @@ export class SessionBucket extends DurableObject {
             return Response.json({ error: "Session event limit reached" }, { status: 429 });
         }
 
+        session.events.push(event);
+
         session.lastEventAt = Date.now();
         await this.ctx.storage.put(SESSION, session);
 
@@ -46,6 +49,7 @@ export class SessionBucket extends DurableObject {
         if (!session) return;
 
         console.error(`Session became idle with ${session.events.length}`);
+        await sendDiscord(this.env, formatSessionSummary(session));
         await this.ctx.storage.delete(SESSION);
     }
 }
