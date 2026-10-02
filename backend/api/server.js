@@ -4,9 +4,9 @@ import crypto from "node:crypto";
 import cors from "cors";
 import { saveEvent } from "./database.js";
 import { cookie_ops, is_max_collection } from "./cookies.js";
+import { formatDiscord, sendDiscord } from "./notification.js";
 
 const PORT = process.env.PORT || 3000;
-const DISC = process.env.DISCORD_WEBHOOK_URL
 const UUID_PATTERN =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -75,48 +75,6 @@ function normalizeLocation(location) {
         longitude: Number.isFinite(longitude) && longitude >= -180 && longitude <= 180 ? longitude : null,
         accuracy: Number.isFinite(accuracy) && accuracy >= 0 ? accuracy : null
     };
-}
-
-function formatDiscord(eventData) {
-    return [
-        `New Portfolio event: ${eventData.type}`,
-        "",
-        "```json",
-        JSON.stringify(eventData, null, 2),
-        "```"
-    ].join("\n");
-}
-
-export async function sendDiscord(message) {
-    if (!DISC) {
-        throw new Error("Missing discord url")
-    }
-
-    if (typeof message !== "string" || message.trim() === "") {
-        throw new TypeError("Discord message must be a non-empty string");
-    }
-
-    const response = await fetch(`${DISC}?wait=true`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            content: message.trim().slice(0, 2000),
-            allowed_mentions: {
-                parse: []
-            }
-        })
-    })
-
-    if (!response.ok) {
-        console.error(
-            "Discord webhook failed:",
-            response.status,
-            await response.text()
-        );
-        throw new Error("Discord notification failed");
-    }
-
-    return response;    
 }
 
 async function saveSession(sesh) {
@@ -216,8 +174,7 @@ app.post("/api/events", async (req, res) => {
         event: eventData
     });
 
-    // saveEvent(eventData);
-    sendDiscord(formatDiscord(eventData));
+    sendDiscord(formatDiscord(eventData)).catch(console.error);
     res.json({ success: true });
 });
 

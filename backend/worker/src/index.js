@@ -3,6 +3,7 @@ import {
     max_cookie, min_cookie,
     serializeVisitorCookie
 } from "./cookies.js";
+import { sendDiscord } from "./notification.js";
 export { SessionBucket } from "./session.js";
 
 const UUID_PATTERN =
@@ -148,44 +149,6 @@ function normalizeLocation(location) {
     };
 }
 
-function formatDiscord(eventData) {
-    return [
-        `New Portfolio event: ${eventData.type}`,
-        "",
-        "```json",
-        JSON.stringify(eventData, null, 2),
-        "```"
-    ].join("\n");
-}
-
-async function sendDiscord(env, message) {
-    if (!env.DISCORD_WEBHOOK_URL) {
-        throw new Error("Missing DISCORD_WEBHOOK_URL");
-    }
-
-    if (typeof message !== "string" || message.trim() === "") {
-        throw new TypeError("Discord message must be a non-empty string");
-    }
-
-    const response = await fetch(`${env.DISCORD_WEBHOOK_URL}?wait=true`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            content: message.trim().slice(0, 2000),
-            allowed_mentions: {
-                parse: []
-            }
-        })
-    });
-
-    if (!response.ok) {
-        console.error("Discord webhook failed:", response.status, await response.text());
-        throw new Error("Discord notification failed");
-    }
-}
-
 async function saveSession(env, { sessionId, event }) {
     const bucket = env.SESSION_BUCKETS.getByName(sessionId);
     console.log("Received session event:", JSON.stringify(event));
@@ -210,7 +173,7 @@ async function handleTestDiscord(request, env) {
     }
 }
 
-async function handleEvent(request, env, ctx) {
+async function handleEvent(request, env) {
     const body = await parseJson(request);
     const { sessionId, event } = body ?? {};
 
@@ -284,12 +247,6 @@ async function handleEvent(request, env, ctx) {
 
     const bucketResult = await bucketResponse.json();
 
-    ctx.waitUntil(
-        sendDiscord(env, formatDiscord(eventData)).catch((error) => {
-            console.error(error);
-        })
-    );
-
     const headers = {};
     if (!cookies.visitor_id) {
         headers["Set-Cookie"] = serializeVisitorCookie(visitorId, env);
@@ -302,7 +259,7 @@ async function handleEvent(request, env, ctx) {
 }
 
 export default {
-    async fetch(request, env, ctx) {
+    async fetch(request, env) {
         if (request.method === "OPTIONS") {
             return new Response(null, {
                 status: 204,
@@ -330,7 +287,7 @@ export default {
         }
 
         if (url.pathname === "/api/events" && request.method === "POST") {
-            return handleEvent(request, env, ctx);
+            return handleEvent(request, env);
         }
 
         return new Response("Not found", {

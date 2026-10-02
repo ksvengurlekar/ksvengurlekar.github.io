@@ -1,4 +1,3 @@
-// backend/worker/src/notification.js
 export function formatSessionSummary(session) {
     const counts = {};
 
@@ -26,7 +25,7 @@ export async function sendDiscord(env, message) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            content: message.slice(0, 2000),
+            content: message.trim().slice(0, 2000),
             allowed_mentions: { parse: [] }
         })
     });
