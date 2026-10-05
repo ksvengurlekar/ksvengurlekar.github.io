@@ -36,7 +36,7 @@ export class SessionBucket extends DurableObject {
         session.lastEventAt = Date.now();
         await this.ctx.storage.put(SESSION, session);
 
-        this.ctx.storage.setAlarm(Date.now() + IDLE_TIMEOUT_MS)
+        await this.ctx.storage.setAlarm(Date.now() + IDLE_TIMEOUT_MS)
 
         return Response.json({
             ok: true,
