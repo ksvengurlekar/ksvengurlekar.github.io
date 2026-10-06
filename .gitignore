@@ -2,6 +2,7 @@
 node_modules/
 coverage/
 build/
+backend/worker/test.txt
 
 # env
 .DS_Store

@@ -3,8 +3,9 @@ import {
     max_cookie, min_cookie,
     serializeVisitorCookie
 } from "./cookies.js";
-import { sendDiscord } from "./notification.js";
 export { SessionBucket } from "./session.js";
+
+const MAX_JSON = 10 * 1024;
 
 const UUID_PATTERN =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -74,10 +75,24 @@ function getCookies(request) {
 }
 
 async function parseJson(request) {
+    if (!request.body) return { error: "invalid" };
+
+    const decoder = new TextDecoder();
+    let bytes = 0;
+    let text = "";
+
     try {
-        return await request.json();
+        for await (const chunk of request.body()) {
+            bytes += chunk.byteLength;
+            if (bytes > MAX_JSON) return { error: "too_large "};
+
+            text += decoder.decode(chunk, { stream : true });
+        }
+
+        text += decoder.decode();
+        return { body: JSON.parse(text) };
     } catch {
-        return null;
+        return { error: "invalid" };
     }
 }
 
@@ -151,7 +166,6 @@ function normalizeLocation(location) {
 
 async function saveSession(env, { sessionId, event }) {
     const bucket = env.SESSION_BUCKETS.getByName(sessionId);
-    console.log("Received session event:", JSON.stringify(event));
 
     return bucket.fetch("https://session-bucket/event", {
         method: "POST",
@@ -160,21 +174,15 @@ async function saveSession(env, { sessionId, event }) {
     });
 }
 
-async function handleTestDiscord(request, env) {
-    const body = await parseJson(request);
-    const message = body?.message;
-
-    try {
-        await sendDiscord(env, message);
-        return jsonResponse(request, { success: true });
-    } catch (error) {
-        console.error(error);
-        return jsonResponse(request, { error: "Discord notification failed" }, 502);
-    }
-}
-
 async function handleEvent(request, env) {
     const body = await parseJson(request);
+
+    if (body.error === "too_large")
+        return jsonResponse(request, { error: "request body too large" }, 413);
+    if (body.error)
+        return jsonResponse(request, { error: "invalid json" }, 400);
+
+
     const { sessionId, event } = body ?? {};
 
     if (
@@ -242,7 +250,12 @@ async function handleEvent(request, env) {
     const bucketResponse = await saveSession(env, { sessionId, event: eventData });
 
     if (!bucketResponse.ok) {
-        return jsonResponse(request, { error: "Could not save event" }, 502)
+        const limited = bucketResponse.status === 429;
+        return jsonResponse(
+            request,
+            { error: limited ? "Session event limit reached" : "Could not save event" },
+            limited ? 429 : 502
+        );
     }
 
     const bucketResult = await bucketResponse.json();
@@ -274,16 +287,6 @@ export default {
                 ok: true,
                 service: "portfolio-api"
             });
-        }
-
-        if (url.pathname === "/api/test-secret" && request.method === "GET") {
-            return jsonResponse(request, {
-                configured: Boolean(env.DISCORD_WEBHOOK_URL)
-            });
-        }
-
-        if (url.pathname === "/api/test-discord" && request.method === "POST") {
-            return handleTestDiscord(request, env);
         }
 
         if (url.pathname === "/api/events" && request.method === "POST") {
