@@ -139,6 +139,6 @@ document.querySelectorAll(".social-links a").forEach((link) => {
     });
 });
 
-resumeLink.addEventListener("click", () => {
+document.querySelector("#resume-link")?.addEventListener("click", () => {
     trackEvent("resume-click");
-})
+});
