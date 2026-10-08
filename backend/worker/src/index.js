@@ -82,9 +82,9 @@ async function parseJson(request) {
     let text = "";
 
     try {
-        for await (const chunk of request.body()) {
+        for await (const chunk of request.body) {
             bytes += chunk.byteLength;
-            if (bytes > MAX_JSON) return { error: "too_large "};
+            if (bytes > MAX_JSON) return { error: "too_large"} ;
 
             text += decoder.decode(chunk, { stream : true });
         }
@@ -175,15 +175,15 @@ async function saveSession(env, { sessionId, event }) {
 }
 
 async function handleEvent(request, env) {
-    const body = await parseJson(request);
+    const parsed = await parseJson(request);
 
-    if (body.error === "too_large")
+    if (parsed.error === "too_large")
         return jsonResponse(request, { error: "request body too large" }, 413);
-    if (body.error)
+    if (parsed.error)
         return jsonResponse(request, { error: "invalid json" }, 400);
 
 
-    const { sessionId, event } = body ?? {};
+    const { sessionId, event } = parsed.body ?? {};
 
     if (
         !event ||
@@ -290,6 +290,15 @@ export default {
         }
 
         if (url.pathname === "/api/events" && request.method === "POST") {
+            const ip = request.headers.get("CF-Connecting-IP") ?? "local";
+            const { success } = await env.EVENT_RATE_LIMITER.limit({
+                key: `events:${ip}`
+            })
+
+            if (!success) {
+                return jsonResponse(request, { error: "Too many events" }, 429);
+            }
+
             return handleEvent(request, env);
         }
 

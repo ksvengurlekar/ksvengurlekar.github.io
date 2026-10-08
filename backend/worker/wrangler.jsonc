@@ -13,10 +13,22 @@
       }
     ]
   },
+
   "exports": {
     "SessionBucket": {
       "type": "durable-object",
       "storage": "sqlite"
     }
-  }
+  },
+
+  "ratelimits": [
+    {
+      "name": "EVENT_RATE_LIMITER",
+      "namespace_id": "7643294",
+      "simple": {
+        "limit": 30,
+        "period": 60
+      }
+    }
+  ]
 }
