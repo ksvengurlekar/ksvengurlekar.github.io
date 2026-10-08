@@ -91,12 +91,7 @@ async function trackCurrentLocation() {
     }
 }
 
-const isLocalDemo = ["localhost", "127.0.0.1"].includes(window.location.hostname);
 const sessionId = getSessionId();
-
-if (isLocalDemo) {
-    trackCurrentLocation();
-}
 
 navLinks.forEach((link) => {
     link.addEventListener('click', (event) => {
@@ -118,8 +113,13 @@ window.addEventListener('popstate', () => {
 showPage(window.location.hash.slice(1) || 'home');
 
 // site analytics
+const pageViewKey = `page-view-sent:${sessionId}`;
 
-trackEvent("page-view");
+if (!sessionStorage.getItem(pageViewKey)) {
+    sessionStorage.setItem(pageViewKey, "1");
+    trackCurrentLocation()
+    trackEvent("page-view");
+}
 
 document.querySelectorAll(".project-links a").forEach((link) => {
     link.addEventListener("click", () => {
