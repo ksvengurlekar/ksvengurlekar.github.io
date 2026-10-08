@@ -2,7 +2,7 @@ import { DurableObject } from "cloudflare:workers";
 import { sendDiscord } from "./notification.js";
 
 const MAX_EVENTS = 100;
-const IDLE_TIMEOUT_MS = 20_000;
+const IDLE_TIMEOUT_MS = 10 * 60 * 1000;
 const SESSION = "session";
 
 export class SessionBucket extends DurableObject {
