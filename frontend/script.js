@@ -11,65 +11,59 @@ function showPage(pageId) {
     });
 }
 
-function trackEvent(eventName, extraData = {}) {
-    const eventData = {
-        event: eventName,
-        pageUrl: window.location.href,
+async function trackEvent(eventName, extraData = {}) {
+    const event = {
+        eventId: crypto.randomUUID(),
+        type: eventName,
+        pagePath: getPagePath(),
+        occurredAt: new Date().toISOString(),
         ...extraData
-    };
+    }; 
 
-    return fetch(`${window.APP_CONFIG.apiBaseUrl}/api/events`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify(eventData)
-    })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log("Tracked:", data);
-    })
-    .catch((error) => {
-      console.error("Tracking failed:", error);
-    });
-}
+    try {
+        const response = await fetch(`${window.APP_CONFIG.apiBaseUrl}/api/events`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({sessionId, event})
+        });
 
-function getCurrentPosition() {
-    return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) {
-            reject(new Error("Geolocation is not supported by this browser."));
-            return;
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(`Tracking failed: ${response.status} ${JSON.stringify(data)}`);
         }
 
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: false,
-            timeout: 10000,
-            maximumAge: 300000
-        });
-    });
-}
-
-// This is enabled automatically for the local demo only. In production, call
-// it from an explicit user action after adding your permission/consent UI.
-async function trackCurrentLocation() {
-    try {
-        const position = await getCurrentPosition();
-        const { latitude, longitude, accuracy } = position.coords;
-
-        await trackEvent("location-shared", {
-            location: { latitude, longitude, accuracy }
-        });
+        console.log("Tracked:", data);
     } catch (error) {
-        console.warn("Location was not shared:", error.message);
+        console.error("Tracking failed:", error);
     }
 }
 
-const isLocalDemo = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+function getSessionId() {
+    let sessionId = sessionStorage.getItem("session_id");
+    if (!sessionId) {
+        sessionId = crypto.randomUUID();
+        sessionStorage.setItem("session_id", sessionId);
+    }
 
-if (isLocalDemo) {
-    trackCurrentLocation();
+    return sessionId;
 }
+
+function getPagePath() {
+    const rawPath =
+        window.location.hash.slice(1) || window.location.pathname || "/";
+
+    const pathWithoutQuery = rawPath.split(/[?#]/, 1)[0];
+
+    const normalized = pathWithoutQuery.startsWith("/") ? pathWithoutQuery
+        : `/${pathWithoutQuery}`;
+
+    return normalized.replace(/\/+/g, "/").slice(0, 200);
+}
+
+const sessionId = getSessionId();
 
 navLinks.forEach((link) => {
     link.addEventListener('click', (event) => {
@@ -91,8 +85,12 @@ window.addEventListener('popstate', () => {
 showPage(window.location.hash.slice(1) || 'home');
 
 // site analytics
+const pageViewKey = `page-view-sent:${sessionId}`;
 
-trackEvent("page-view");
+if (!sessionStorage.getItem(pageViewKey)) {
+    sessionStorage.setItem(pageViewKey, "1");
+    trackEvent("page-view");
+}
 
 document.querySelectorAll(".project-links a").forEach((link) => {
     link.addEventListener("click", () => {
@@ -112,6 +110,6 @@ document.querySelectorAll(".social-links a").forEach((link) => {
     });
 });
 
-resumeLink.addEventListener("click", () => {
+document.querySelector("#resume-link")?.addEventListener("click", () => {
     trackEvent("resume-click");
-})
+});

@@ -4,6 +4,6 @@ const isLocal =
 
 window.APP_CONFIG = {
   apiBaseUrl: isLocal
-    ? "http://localhost:3000"
+    ? "http://localhost:8787"
     : "https://replacelater-domain.com"
 };
