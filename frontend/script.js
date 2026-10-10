@@ -41,21 +41,6 @@ async function trackEvent(eventName, extraData = {}) {
     }
 }
 
-function getCurrentPosition() {
-    return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) {
-            reject(new Error("Geolocation is not supported by this browser."));
-            return;
-        }
-
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 300000
-        });
-    });
-}
-
 function getSessionId() {
     let sessionId = sessionStorage.getItem("session_id");
     if (!sessionId) {
@@ -76,19 +61,6 @@ function getPagePath() {
         : `/${pathWithoutQuery}`;
 
     return normalized.replace(/\/+/g, "/").slice(0, 200);
-}
-
-async function trackCurrentLocation() {
-    try {
-        const position = await getCurrentPosition();
-        const { latitude, longitude, accuracy } = position.coords;
-
-        await trackEvent("location-shared", {
-            location: { latitude, longitude, accuracy }
-        });
-    } catch (error) {
-        console.warn("Location was not shared:", error.message);
-    }
 }
 
 const sessionId = getSessionId();
@@ -117,7 +89,6 @@ const pageViewKey = `page-view-sent:${sessionId}`;
 
 if (!sessionStorage.getItem(pageViewKey)) {
     sessionStorage.setItem(pageViewKey, "1");
-    trackCurrentLocation()
     trackEvent("page-view");
 }
 

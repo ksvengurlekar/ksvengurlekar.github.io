@@ -17,7 +17,7 @@ export const max_cookie = {
     fullReferrerUrl: true,
     fullPageUrl: true,
     fullUserAgent: true,
-    sharedLocation: true
+    estimatedLocation: true
 };
 
 export function isMaxCollection(env) {

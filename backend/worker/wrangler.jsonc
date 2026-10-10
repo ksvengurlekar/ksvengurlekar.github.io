@@ -4,6 +4,9 @@
   "name": "portfolio-api",
   "main": "src/index.js",
   "compatibility_date": "2026-09-26",
+  "vars": {
+    "NODE_ENV": "production"
+  },
   
   "durable_objects": {
   "bindings": [

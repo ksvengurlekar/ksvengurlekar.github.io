@@ -38,10 +38,7 @@ export class SessionBucket extends DurableObject {
 
         await this.ctx.storage.setAlarm(Date.now() + IDLE_TIMEOUT_MS)
 
-        return Response.json({
-            ok: true,
-            storedEvents: session.events.length
-        })
+        return Response.json({ ok: true });
     }
 
     async alarm() {

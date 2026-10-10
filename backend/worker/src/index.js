@@ -20,7 +20,6 @@ const allowedEvents = new Set([
     "page-view",
     "resume-click",
     "project-click",
-    "location-shared",
     "page-navigation",
     "project-link-click",
     "social-link-click"
@@ -153,17 +152,6 @@ function normalizePageUrl(pageUrl) {
     }
 }
 
-function normalizeLocation(location) {
-    const source = location && typeof location === "object" ? location : {};
-    const { latitude, longitude, accuracy } = source;
-
-    return {
-        latitude: Number.isFinite(latitude) && latitude >= -90 && latitude <= 90 ? latitude : null,
-        longitude: Number.isFinite(longitude) && longitude >= -180 && longitude <= 180 ? longitude : null,
-        accuracy: Number.isFinite(accuracy) && accuracy >= 0 ? accuracy : null
-    };
-}
-
 async function saveSession(env, { sessionId, event }) {
     const bucket = env.SESSION_BUCKETS.getByName(sessionId);
 
@@ -224,8 +212,15 @@ async function handleEvent(request, env) {
 
     const collectionPolicy = isMaxCollection(env) ? max_cookie : min_cookie;
 
-    if (event.type === "location-shared" && collectionPolicy.sharedLocation) {
-        eventData.location = normalizeLocation(event.location);
+    if (event.type === "page-view" && collectionPolicy.estimatedLocation) {
+        const cf = request.cf ?? {};
+        const country = typeof cf.country === "string" ? cf.country : null;
+        const region = typeof cf.region === "string" ? cf.region : null;
+        const city = typeof cf.city === "string" ? cf.city : null;
+
+        if (country || region || city) {
+            eventData.estimatedLocation = { country, region, city, source: "ip" };
+        }
     }
 
     if (collectionPolicy.fullIpAddress) {
@@ -258,17 +253,12 @@ async function handleEvent(request, env) {
         );
     }
 
-    const bucketResult = await bucketResponse.json();
-
     const headers = {};
     if (!cookies.visitor_id) {
         headers["Set-Cookie"] = serializeVisitorCookie(visitorId, env);
     }
 
-    return jsonResponse(request, { 
-        success: true,
-        storedEvents: bucketResult.storedEvents
-    }, 200, headers);
+    return jsonResponse(request, { success: true }, 200, headers);
 }
 
 export default {
