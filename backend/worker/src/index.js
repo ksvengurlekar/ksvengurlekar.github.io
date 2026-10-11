@@ -280,6 +280,10 @@ export default {
         }
 
         if (url.pathname === "/api/events" && request.method === "POST") {
+            if (!allowedOrigins.has(request.headers.get("Origin"))) {
+                return jsonResponse(request, { error: "Forbidden origin" }, 403);
+            }
+
             const ip = request.headers.get("CF-Connecting-IP") ?? "local";
             const { success } = await env.EVENT_RATE_LIMITER.limit({
                 key: `events:${ip}`
