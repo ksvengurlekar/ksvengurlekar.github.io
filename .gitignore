@@ -2,6 +2,7 @@
 node_modules/
 coverage/
 build/
+backend/worker/test.txt
 
 # env
 .DS_Store
@@ -9,6 +10,11 @@ node_modules/
 *.pem
 .env*
 !.env.example
+backend/worker/.dev.vars
+/AGENTS.md
+
+# Cloudflare Wrangler local state and logs
+.wrangler/
 
 #ts + vercel
 .vercel
