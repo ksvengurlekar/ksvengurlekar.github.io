@@ -5,5 +5,5 @@ const isLocal =
 window.APP_CONFIG = {
   apiBaseUrl: isLocal
     ? "http://localhost:8787"
-    : "https://replacelater-domain.com"
+    : "https://portfolio-api.ksvengurlekar.workers.dev"
 };
