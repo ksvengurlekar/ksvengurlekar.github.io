@@ -100,6 +100,13 @@ h1, h2, h3, .sidebar-title {
     vertical-align: -0.15em;
 }
 
+.profile-photo {
+    width: 180px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
 .social-links, .project-links {
     display: flex;
     gap: 12px;
