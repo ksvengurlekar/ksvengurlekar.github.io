@@ -8,7 +8,9 @@ export const min_cookie = {
     userAgentFamily: true,
     languageRegion: true,
     eventType: true,
-    deviceCategory: true
+    deviceCategory: true,
+    operatingSystemFamily: true,
+    language: true
 };
 
 export const max_cookie = {
@@ -17,7 +19,8 @@ export const max_cookie = {
     fullReferrerUrl: true,
     fullPageUrl: true,
     fullUserAgent: true,
-    estimatedLocation: true
+    estimatedLocation: true,
+    networkMetadata: true
 };
 
 export function isMaxCollection(env) {

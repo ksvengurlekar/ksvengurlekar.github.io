@@ -21,8 +21,11 @@ test("small sessions show event details inline alongside totals", () => {
     assert.match(message, /Portfolio session: 2 events/);
     assert.match(message, /page-view: 1\nresume-click: 1/);
     assert.match(message, /Event preview \(2\/2 shown\):/);
-    assert.match(message, /1\. page-view\n   Time: 2026-10-17T01:00:00.000Z\n   Page: \/home/);
-    assert.match(message, /2\. resume-click\n   Time: 2026-10-17T01:01:00.000Z\n   Page: \/about/);
+    assert.match(message, /Started: <t:1792198800:F>/);
+    assert.match(message, /Last event: <t:1792198860:F>/);
+    assert.match(message, /Observed span: 1m 0s/);
+    assert.match(message, /1\. \+0s page-view\n   Page: \/home/);
+    assert.match(message, /2\. \+1m 0s resume-click\n   Page: \/about/);
     assert.ok(message.endsWith("Full stored session data is attached as portfolio-session.json."));
 });
 
@@ -50,8 +53,44 @@ test("browser values cannot close the code block or create extra preview lines",
         pagePath: "/home\n```\n@everyone"
     }]));
 
-    assert.match(message, /Time: unknown/);
+    assert.match(message, /time unknown page-view/);
     assert.match(message, /Page: \/home ''' @everyone/);
+    assert.equal((message.match(/```/g) ?? []).length, 2);
+});
+
+test("timeline uses server receipt time when the browser clock is wrong", () => {
+    const message = formatSessionSummary(makeSession([{
+        ...events[1], timestamp: "2036-10-17T01:00:00.000Z", receivedAt: "2026-10-17T01:00:12.000Z"
+    }]));
+    assert.match(message, /\+12s resume-click/);
+    assert.ok(!message.includes("2036"));
+});
+
+test("preview includes device, estimated location, network, and click details", () => {
+    const message = formatSessionSummary(makeSession([{
+        ...events[0], deviceCategory: "mobile", operatingSystemFamily: "iOS", userAgentFamily: "Safari",
+        language: "en-US", estimatedLocation: { city: "Austin", region: "Texas", country: "US" },
+        network: { asOrganization: "Example ISP" }, entryReferrerOrigin: "https://example.org"
+    }, {
+        ...events[1], projectName: "Portfolio", linkText: "Code", destination: "https://github.com/example/portfolio"
+    }]));
+    assert.match(message, /Device: mobile \/ iOS \/ Safari/);
+    assert.match(message, /Location \(IP estimate\): Austin, Texas, US/);
+    assert.match(message, /Network: Example ISP/);
+    assert.match(message, /Entry referrer: https:\/\/example.org/);
+    assert.match(message, /Project: Portfolio\n   Link: Code\n   Destination: https:\/\/github.com\/example\/portfolio/);
+});
+
+test("enriched sessions remain within the message budget", () => {
+    const session = makeSession(Array.from({ length: 100 }, () => ({
+        ...events[0], type: "project-link-click", deviceCategory: "mobile", operatingSystemFamily: "iOS",
+        userAgentFamily: "Safari", language: "en-US", estimatedLocation: { city: "x".repeat(200) },
+        network: { asOrganization: "x".repeat(200) }, entryReferrerOrigin: "x".repeat(200),
+        projectName: "x".repeat(200), linkText: "x".repeat(200), destination: "x".repeat(2000)
+    })));
+    const message = formatSessionSummary(session);
+    assert.ok(message.length <= 2000);
+    assert.match(message, /Event preview \([1-9]\d*\/100 shown\):/);
     assert.equal((message.match(/```/g) ?? []).length, 2);
 });
 

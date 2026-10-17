@@ -89,13 +89,14 @@ const pageViewKey = `page-view-sent:${sessionId}`;
 
 if (!sessionStorage.getItem(pageViewKey)) {
     sessionStorage.setItem(pageViewKey, "1");
-    trackEvent("page-view");
+    trackEvent("page-view", { entryReferrer: document.referrer });
 }
 
 document.querySelectorAll(".project-links a").forEach((link) => {
     link.addEventListener("click", () => {
         trackEvent("project-link-click", {
             linkText: link.textContent.trim(),
+            projectName: link.closest(".project-card")?.querySelector("h3")?.textContent.trim(),
             destination: link.href
         });
     });
@@ -111,5 +112,5 @@ document.querySelectorAll(".social-links a").forEach((link) => {
 });
 
 document.querySelector("#resume-link")?.addEventListener("click", () => {
-    trackEvent("resume-click");
+    trackEvent("resume-click", { destination: document.querySelector("#resume-link").href });
 });
