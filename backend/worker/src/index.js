@@ -3,6 +3,7 @@ import {
     max_cookie, min_cookie,
     serializeVisitorCookie
 } from "./cookies.js";
+import { getEventDetails, getNetworkMetadata, getOperatingSystemFamily } from "./analytics.js";
 export { SessionBucket } from "./session.js";
 
 const MAX_JSON = 10 * 1024;
@@ -202,12 +203,17 @@ async function handleEvent(request, env) {
         vid: visitorId,
         eventId: event.eventId ?? crypto.randomUUID(),
         type: event.type,
-        timestamp: event.occurredAt ?? now,
+        timestamp: typeof event.occurredAt === "string" && Number.isFinite(Date.parse(event.occurredAt))
+            ? new Date(event.occurredAt).toISOString() : now,
+        receivedAt: now,
         pagePath,
         referrerOrigin: getReferrerOrigin(referrerUrl),
         userAgentFamily: getUserAgentFamily(userAgent),
         languageRegion: getLanguageRegion(request),
-        deviceCategory: getDeviceCategory(userAgent)
+        deviceCategory: getDeviceCategory(userAgent),
+        operatingSystemFamily: getOperatingSystemFamily(userAgent),
+        language: request.headers.get("accept-language")?.match(/^[a-z]{2,3}(?:-[a-z0-9]{2,8})*/i)?.[0] ?? null,
+        ...getEventDetails(event)
     };
 
     const collectionPolicy = isMaxCollection(env) ? max_cookie : min_cookie;
@@ -219,8 +225,18 @@ async function handleEvent(request, env) {
         const city = typeof cf.city === "string" ? cf.city : null;
 
         if (country || region || city) {
-            eventData.estimatedLocation = { country, region, city, source: "ip" };
+            eventData.estimatedLocation = {
+                country, region, city, source: "ip",
+                continent: typeof cf.continent === "string" ? cf.continent : null,
+                regionCode: typeof cf.regionCode === "string" ? cf.regionCode : null,
+                timezone: typeof cf.timezone === "string" ? cf.timezone : null
+            };
         }
+    }
+
+    if (event.type === "page-view" && collectionPolicy.networkMetadata) {
+        const network = getNetworkMetadata(request.cf ?? {});
+        if (Object.keys(network).length) eventData.network = network;
     }
 
     if (collectionPolicy.fullIpAddress) {
