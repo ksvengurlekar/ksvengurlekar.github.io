@@ -1,17 +1,50 @@
+const MAX_MESSAGE_LENGTH = 2000;
+
+function previewText(value, fallback, maxLength) {
+    if (typeof value !== "string" || value.trim() === "") return fallback;
+
+    // Keep browser-supplied values on one line and inside the preview's code block.
+    const text = value.replace(/`/g, "'").replace(/\s/g, " ").trim();
+    return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
+}
+
 export function formatSessionSummary(session) {
-    const counts = {};
+    const counts = new Map();
 
     for (const event of session.events) {
-        counts[event.type] = (counts[event.type] ?? 0) + 1;
+        counts.set(event.type, (counts.get(event.type) ?? 0) + 1);
     }
 
-    return [
+    const summary = [
         `Portfolio session: ${session.events.length} events`,
         `Started: ${new Date(session.startedAt).toISOString()}`,
         `Last event: ${new Date(session.lastEventAt).toISOString()}`,
-        ...Object.entries(counts).map(([type, count]) => `${type}: ${count}`),
+        ...Array.from(counts, ([type, count]) => `${type}: ${count}`)
+    ].join("\n");
+
+    const preview = [];
+    const messageWith = (events) => [
+        summary,
+        "",
+        `Event preview (${events.length}/${session.events.length} shown):`,
+        ...(events.length ? ["```text", events.join("\n"), "```"] : []),
         "Full stored session data is attached as portfolio-session.json."
     ].join("\n");
+
+    for (const [index, event] of session.events.entries()) {
+        const detail = [
+            `${index + 1}. ${previewText(event.type, "unknown", 40)}`,
+            `   Time: ${previewText(event.timestamp, "unknown", 40)}`,
+            `   Page: ${previewText(event.pagePath, "unknown", 200)}`
+        ].join("\n");
+        const candidate = [...preview, detail];
+
+        // Reserve space for the closing fence and attachment note before adding a row.
+        if (messageWith(candidate).length > MAX_MESSAGE_LENGTH) break;
+        preview.push(detail);
+    }
+
+    return messageWith(preview);
 }
 
 export async function sendDiscord(env, session) {
@@ -30,7 +63,7 @@ export async function sendDiscord(env, session) {
 
     const form = new FormData();
     form.append("payload_json", JSON.stringify({
-        content: message.trim().slice(0, 2000),
+        content: message,
         allowed_mentions: { parse: [] }
     }));
     form.append(
