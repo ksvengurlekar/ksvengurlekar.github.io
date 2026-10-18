@@ -100,6 +100,12 @@ h1, h2, h3, .sidebar-title {
     vertical-align: -0.15em;
 }
 
+.university-logo {
+    width: 2em;
+    height: 2em;
+    vertical-align: -.58em;
+}
+
 .profile-photo {
     width: 180px;
     height: 120px;
