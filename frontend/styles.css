@@ -164,6 +164,7 @@ h1, h2, h3, .sidebar-title {
 .project-card h3 { margin: 0 0 4px; color: #111; font-size: 0.95rem; font-weight: 600; }
 .project-card p { margin-bottom: 8px; color: #555; font-size: 0.88rem; }
 .project-card .project-tech { margin: 0; color: #7b7180; font-size: 0.8rem; }
+.project-image { display: block; width: 100%; height: auto; margin: 12px 0; border-radius: 6px; }
 
 .experience-item { padding: 16px 0; border-bottom: 1px solid #f0f0f0; }
 .experience-item:first-child { padding-top: 0; }
