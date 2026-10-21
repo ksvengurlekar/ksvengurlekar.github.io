@@ -1,6 +1,61 @@
 const navLinks = document.querySelectorAll('.sidebar-nav a[data-page]');
 const sections = document.querySelectorAll('.page-section');
 
+document.querySelectorAll('.image-frame img').forEach((image) => {
+    const frame = image.closest('.image-frame');
+    if (image.complete && image.naturalWidth > 0) return;
+
+    frame.classList.add('is-loading');
+    image.addEventListener('load', () => frame.classList.remove('is-loading'), { once: true });
+    image.addEventListener('error', () => frame.classList.remove('is-loading'), { once: true });
+});
+
+async function trackEvent(eventName, extraData = {}) {
+    const apiBaseUrl = window.APP_CONFIG?.apiBaseUrl;
+    if (!apiBaseUrl) return;
+
+    const event = {
+        eventId: crypto.randomUUID(),
+        type: eventName,
+        pagePath: getPagePath(),
+        occurredAt: new Date().toISOString(),
+        ...extraData
+    };
+
+    try {
+        const response = await fetch(`${apiBaseUrl}/api/events`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ sessionId, event })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Tracking failed: ${response.status}`);
+        }
+    } catch (error) {
+        console.error('Tracking failed:', error);
+    }
+}
+
+function getSessionId() {
+    let id = sessionStorage.getItem('session_id');
+    if (!id) {
+        id = crypto.randomUUID();
+        sessionStorage.setItem('session_id', id);
+    }
+    return id;
+}
+
+function getPagePath() {
+    const rawPath = window.location.hash.slice(1) || window.location.pathname || '/';
+    const pathWithoutQuery = rawPath.split(/[?#]/, 1)[0];
+    const normalized = pathWithoutQuery.startsWith('/') ? pathWithoutQuery : `/${pathWithoutQuery}`;
+    return normalized.replace(/\/+/g, '/').slice(0, 200);
+}
+
+const sessionId = getSessionId();
+
 function showPage(pageId) {
     sections.forEach((section) => {
     section.classList.toggle('active', section.id === pageId);
@@ -109,8 +164,4 @@ document.querySelectorAll(".social-links a").forEach((link) => {
             destination: link.href
         });
     });
-});
-
-document.querySelector("#resume-link")?.addEventListener("click", () => {
-    trackEvent("resume-click", { destination: document.querySelector("#resume-link").href });
 });
