@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "express": "^5.2.1",
+    "cors": "^2.8.6"
+  },
+  "scripts": {
+    "start": "node --env-file=.env backend/api/server.js",
+    "start:minimal": "COOKIE_MODE=minimal node --env-file=.env backend/api/server.js"
+  }
+
+}
