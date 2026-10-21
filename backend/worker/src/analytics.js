@@ -26,7 +26,7 @@ export function getEventDetails(event) {
         if (target && /^[a-z0-9_-]+$/i.test(target)) details.targetPage = target;
     }
 
-    if (["project-click", "project-link-click", "social-link-click", "resume-click"].includes(event.type)) {
+    if (["project-click", "project-link-click", "social-link-click"].includes(event.type)) {
         for (const field of ["linkText", "linkTitle", "projectName"]) {
             const text = boundedText(event[field]);
             if (text) details[field] = text;

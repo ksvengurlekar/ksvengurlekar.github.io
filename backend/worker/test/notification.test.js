@@ -12,20 +12,20 @@ function makeSession(events) {
 
 const events = [
     { type: "page-view", timestamp: "2026-10-17T01:00:00.000Z", pagePath: "/home" },
-    { type: "resume-click", timestamp: "2026-10-17T01:01:00.000Z", pagePath: "/about" }
+    { type: "social-link-click", timestamp: "2026-10-17T01:01:00.000Z", pagePath: "/about" }
 ];
 
 test("small sessions show event details inline alongside totals", () => {
     const message = formatSessionSummary(makeSession(events));
 
     assert.match(message, /Portfolio session: 2 events/);
-    assert.match(message, /page-view: 1\nresume-click: 1/);
+    assert.match(message, /page-view: 1\nsocial-link-click: 1/);
     assert.match(message, /Event preview \(2\/2 shown\):/);
     assert.match(message, /Started: <t:1792198800:F>/);
     assert.match(message, /Last event: <t:1792198860:F>/);
     assert.match(message, /Observed span: 1m 0s/);
     assert.match(message, /1\. \+0s page-view\n   Page: \/home/);
-    assert.match(message, /2\. \+1m 0s resume-click\n   Page: \/about/);
+    assert.match(message, /2\. \+1m 0s social-link-click\n   Page: \/about/);
     assert.ok(message.endsWith("Full stored session data is attached as portfolio-session.json."));
 });
 
@@ -62,7 +62,7 @@ test("timeline uses server receipt time when the browser clock is wrong", () => 
     const message = formatSessionSummary(makeSession([{
         ...events[1], timestamp: "2036-10-17T01:00:00.000Z", receivedAt: "2026-10-17T01:00:12.000Z"
     }]));
-    assert.match(message, /\+12s resume-click/);
+    assert.match(message, /\+12s social-link-click/);
     assert.ok(!message.includes("2036"));
 });
 

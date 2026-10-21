@@ -18,7 +18,6 @@ const allowedOrigins = [
 
 const allowedEvents = new Set([
     "page-view",
-    "resume-click",
     "project-click",
     "location-shared",
     "page-navigation",
