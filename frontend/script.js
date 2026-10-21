@@ -1,6 +1,15 @@
 const navLinks = document.querySelectorAll('.sidebar-nav a[data-page]');
 const sections = document.querySelectorAll('.page-section');
 
+document.querySelectorAll('.image-frame img').forEach((image) => {
+    const frame = image.closest('.image-frame');
+    if (image.complete && image.naturalWidth > 0) return;
+
+    frame.classList.add('is-loading');
+    image.addEventListener('load', () => frame.classList.remove('is-loading'), { once: true });
+    image.addEventListener('error', () => frame.classList.remove('is-loading'), { once: true });
+});
+
 async function trackEvent(eventName, extraData = {}) {
     const apiBaseUrl = window.APP_CONFIG?.apiBaseUrl;
     if (!apiBaseUrl) return;
